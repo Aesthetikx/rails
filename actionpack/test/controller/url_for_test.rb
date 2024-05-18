@@ -35,7 +35,7 @@ module AbstractController
                                    baz: "baz",
                                    zot: "zot")
         # :bar key isn't provided
-        assert_equal "/foo/zot", path
+        assert_equal "/foo/zot?baz=baz", path
       end
 
       def add_host!(app = W)
