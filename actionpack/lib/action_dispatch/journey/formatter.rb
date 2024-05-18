@@ -117,7 +117,27 @@ module ActionDispatch
 
           keys_to_keep = route.parts.reverse_each.drop_while { |part|
             !(options.key?(part) || route.scope_options.key?(part)) || (options[part].nil? && recall[part].nil?)
-          } | route.required_parts
+          }
+
+          unmatched_groups = route.ast.filter_map do |node|
+            next unless node.cat?
+            next unless node.left.symbol?
+            next unless node.right.group?
+
+            symbol = node.left.to_sym
+
+            next unless parameterized_parts[symbol].nil?
+
+            node.right
+          end
+
+          unmatched_groups.each do |group|
+            group.select(&:symbol?).each do |symbol|
+              keys_to_keep.delete(symbol.to_sym)
+            end
+          end
+
+          keys_to_keep |= route.required_parts
 
           parameterized_parts.delete_if do |bad_key, _|
             !keys_to_keep.include?(bad_key)
